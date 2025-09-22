@@ -18,9 +18,7 @@ func New() *DB {
 	if err != nil {
 		panic("Configuração inválida")
 	}
-	db, err := gorm.Open(postgres.Open("host="+cfg.DBHost+" user="+
-		cfg.DBUser+" password="+cfg.DBPassword+" dbname="+
-		cfg.DBName+" port="+cfg.DBPort+" sslmode=disable"), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open("postgresql://"+cfg.DBUser+":"+cfg.DBPassword+"@"+cfg.DBHost+":"+cfg.DBPort+"/"+cfg.DBName+"?sslmode=require&channel_binding=require"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database" + err.Error())
 	}
