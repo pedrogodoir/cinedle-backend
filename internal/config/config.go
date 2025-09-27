@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
@@ -17,29 +18,29 @@ type Config struct {
 	DBPort      string
 }
 
-func LoadConfig() (*Config, error) {
+var (
+	config *Config
+	once   sync.Once
+)
 
-	// Tenta carregar .env (se existir)
-	if err := godotenv.Load(); err != nil {
-		// Não fatal se o arquivo não existir; apenas loga
-		fmt.Println("⚠️ Não foi possível carregar .env ou arquivo não existe. Usando variáveis de ambiente do sistema.")
-	}
-	DatabaseURL := os.Getenv("DB_URL")
+// LoadConfig inicializa a configuração apenas uma vez
+func LoadConfig() *Config {
+	once.Do(func() {
+		// Tenta carregar .env (se existir)
+		if err := godotenv.Load(); err != nil {
+			fmt.Println("⚠️ Não foi possível carregar .env ou arquivo não existe. Usando variáveis de ambiente do sistema.")
+		}
 
-	Port := os.Getenv("PORT")
-	DBUser := os.Getenv("DB_USER")
-	DBPassword := os.Getenv("DB_PASSWORD")
-	DBName := os.Getenv("DB_NAME")
-	DBHost := os.Getenv("DB_HOST")
-	DBPort := os.Getenv("DB_PORT")
+		config = &Config{
+			DatabaseURL: os.Getenv("DB_URL"),
+			Port:        os.Getenv("PORT"),
+			DBUser:      os.Getenv("DB_USER"),
+			DBPassword:  os.Getenv("DB_PASSWORD"),
+			DBName:      os.Getenv("DB_NAME"),
+			DBHost:      os.Getenv("DB_HOST"),
+			DBPort:      os.Getenv("DB_PORT"),
+		}
+	})
 
-	return &Config{
-		DatabaseURL: DatabaseURL,
-		Port:        Port,
-		DBUser:      DBUser,
-		DBPassword:  DBPassword,
-		DBName:      DBName,
-		DBHost:      DBHost,
-		DBPort:      DBPort,
-	}, nil
+	return config
 }

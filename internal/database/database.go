@@ -1,37 +1,47 @@
+// database/database.go
 package database
 
 import (
 	"cinedle-backend/internal/config"
 	"context"
+	"log"
+	"sync"
 
 	"github.com/jackc/pgx/v5"
 )
 
-type DB struct {
-	connection *pgx.Conn
-	ctx        context.Context
+var (
+	db   *pgx.Conn
+	once sync.Once
+	ctx  context.Context
+)
+
+func connect() {
+	cfg := config.LoadConfig()
+	ctx = context.Background()
+
+	var err error
+	db, err = pgx.Connect(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("❌ Erro ao conectar ao banco de dados: %v", err)
+	}
+
+	log.Println("✅ Conectado ao banco de dados com sucesso!")
 }
 
-func New() *DB {
-	cfg, err := config.LoadConfig()
+func GetDB() *pgx.Conn {
+	once.Do(connect)
+	return db
+}
+func GetCtx() context.Context {
+	once.Do(connect)
+	return ctx
+}
+
+func CloseDB() {
+	err := db.Close(ctx)
 	if err != nil {
-		panic("Configuração inválida")
+		log.Fatalf("❌ Erro ao fechar a conexão do banco de dados: %v", err)
 	}
-	db, err := pgx.Connect(context.Background(), cfg.DatabaseURL)
-	if err != nil {
-		panic("failed to connect database" + err.Error())
-	}
-	return &DB{
-		connection: db,
-		ctx:        context.Background(),
-	}
-}
-func (db *DB) GetConnection() *pgx.Conn {
-	return db.connection
-}
-func (db *DB) GetContext() context.Context {
-	return db.ctx
-}
-func (db *DB) Close() error {
-	return db.connection.Close(db.ctx)
+	log.Println("✅ Conexão do banco de dados fechada com sucesso!")
 }

@@ -1,36 +1,27 @@
 package main
 
 import (
+	"cinedle-backend/internal/config"
 	"cinedle-backend/internal/database"
-	"context"
-	"log"
-
-	"github.com/jackc/pgx/v5"
+	repository "cinedle-backend/internal/modules/movies/repositories"
+	"cinedle-backend/internal/router"
+	"fmt"
 )
 
-func queryData(conn *pgx.Conn) {
-	rows, err := conn.Query(context.Background(), "INSERT INTO movie (id, title) VALUES ($1, $2)", 1, "Inception")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id int
-		var title string
-		err := rows.Scan(&id, &title)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("ID: %d, Title: %s", id, title)
-	}
-}
-
 func main() {
-	db := database.New()
-	queryData(db.GetConnection())
+	config.LoadConfig()
+	database.GetDB()
+	movi_repo := repository.NewMoviesRepository()
+	movie, err := movi_repo.GetFullMovieById(1)
+	if err != nil {
+		fmt.Println("Error fetching movies:", err)
+		return
+	}
+	fmt.Println(movie.Actors[0].Name)
 	//router.Run()
 	// Example query to test the connection
 	// Close the database connection when done
-	defer db.Close()
+
+	router.Run()
+	defer database.CloseDB()
 }
