@@ -2,20 +2,23 @@ package router
 
 import (
 	"cinedle-backend/internal/config"
-	movie_router "cinedle-backend/internal/movies/routes"
+	"cinedle-backend/internal/modules/movies/handlers"
+	movie_repo "cinedle-backend/internal/modules/movies/repositories"
+	movie_router "cinedle-backend/internal/modules/movies/routes"
+	movie_service "cinedle-backend/internal/modules/movies/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Run() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		panic("Failed to load config")
-	}
+	cfg := config.LoadConfig()
 	r := gin.Default()
 
 	//setup routes
-	movie_router.Routes(r)
+	movieRepo := movie_repo.NewMoviesRepository()
+	movieService := movie_service.NewMoviesService(movieRepo)
+	movieHandler := handlers.NewMoviesHandler(movieService)
+	movie_router.Routes(r, movieHandler)
 
 	r.Run(":" + cfg.Port)
 }
