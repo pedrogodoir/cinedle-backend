@@ -9,7 +9,7 @@ import (
 func Routes(route *gin.Engine, h *handlers.MoviesHandler) {
 	movies := route.Group("/movies")
 	{
-		movies.GET("/:id", h.GetFullMovieById)
+		movies.GET("/:id", h.GetMovieById)
 		//movies.POST("/", h.CreateMovie) #exemplo
 	}
 }

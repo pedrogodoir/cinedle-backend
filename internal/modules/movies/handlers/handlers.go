@@ -18,7 +18,7 @@ func NewMoviesHandler(service services.MoviesService) *MoviesHandler {
 		service: service,
 	}
 }
-func (h *MoviesHandler) GetFullMovieById(c *gin.Context) {
+func (h *MoviesHandler) GetMovieById(c *gin.Context) {
 	// Pega o ID da URL
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
@@ -27,7 +27,7 @@ func (h *MoviesHandler) GetFullMovieById(c *gin.Context) {
 		return
 	}
 
-	movie, err := h.service.GetFullMovieById(id)
+	movie, err := h.service.GetMovieById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

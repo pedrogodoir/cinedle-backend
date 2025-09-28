@@ -9,7 +9,7 @@ import (
 )
 
 type MoviesRepository interface {
-	GetFullMovieById(id int) (models.MovieRes, error)
+	GetMovieById(id int) (models.MovieRes, error)
 }
 
 // moviesRepo é a implementação concreta do repositório
@@ -24,7 +24,7 @@ func NewMoviesRepository() MoviesRepository {
 	}
 }
 
-func (r *moviesRepo) GetFullMovieById(id int) (models.MovieRes, error) {
+func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 	var query string = `SELECT 
     m.id, m.title, m.release_date, m.budget, m.ticket_office, m.vote_average,
     COALESCE(JSON_AGG(DISTINCT g) FILTER (WHERE g.id IS NOT NULL), '[]') AS genres,
