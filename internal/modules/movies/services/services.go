@@ -8,7 +8,7 @@ import (
 
 // MoviesService define os métodos do service
 type MoviesService interface {
-	GetFullMovieById(id int) (models.MovieRes, error)
+	GetMovieById(id int) (models.MovieRes, error)
 }
 
 // moviesService é a implementação concreta
@@ -23,6 +23,6 @@ func NewMoviesService(repo repository.MoviesRepository) MoviesService {
 	}
 }
 
-func (s *moviesService) GetFullMovieById(id int) (models.MovieRes, error) {
-	return s.repo.GetFullMovieById(id)
+func (s *moviesService) GetMovieById(id int) (models.MovieRes, error) {
+	return s.repo.GetMovieById(id)
 }
