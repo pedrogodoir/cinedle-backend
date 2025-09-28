@@ -1,16 +1,9 @@
-version: "1.0"
-name: cinedle-backend
-
-volumes:
-  postgres_data:
 
 services:
-  postgres:
-    container_name: cinedle_postgres
-    image: postgres:17.5
+  app:
+    container_name: "cinedle_backend"
+    build: .
+    env_file:
+      - .env
     ports:
-      - "5433:5432"
-    environment:
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=cinedle
+      - "5000:5000"
