@@ -14,5 +14,4 @@ func main() {
 	// Close the database connection when done
 
 	router.Run()
-	defer database.CloseDB()
 }
