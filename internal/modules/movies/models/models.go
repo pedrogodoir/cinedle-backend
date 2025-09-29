@@ -15,6 +15,11 @@ type Movie struct {
 	TicketOffice decimal.Decimal `json:"ticketOffice"`
 	VoteAverage  float32         `json:"voteAverage"`
 }
+type MovieSummary struct {
+	ID    int    `json:"id" `
+	Title string `json:"title"`
+}
+
 type MovieRes struct {
 	Movie
 	Genres    []Genre    `json:"genres"`
