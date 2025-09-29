@@ -5,7 +5,6 @@ import (
 	"cinedle-backend/internal/modules/movies/models"
 	repository "cinedle-backend/internal/modules/movies/repositories"
 	"cinedle-backend/internal/utils"
-	"fmt"
 	"strings"
 )
 
@@ -33,11 +32,12 @@ func (s *moviesService) GetMovieById(id int) (models.MovieRes, error) {
 }
 
 func (s *moviesService) GetMovieByTitle(title string) (models.MovieRes, error) {
-	title = utils.ToTitle(title)
-	fmt.Println(title)
-	return s.repo.GetMovieByTitle(title)
+	t := utils.ToTitle(title)
+	t = strings.Trim(t, " ")
+	return s.repo.GetMovieByTitle(t)
 }
 func (s *moviesService) GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error) {
-	var t = strings.Trim(title, " ")
+	t := utils.ToTitle(title)
+	t = strings.Trim(t, " ")
 	return s.repo.GetMovieSummaryByTitle(t)
 }
