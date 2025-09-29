@@ -47,12 +47,12 @@ func (h *ClassicGameHandler) CreateClassicGame(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos: " + err.Error()})
 		return
 	}
-	id, err := h.s.CreateClassicGame(newGame)
+	classicGame, err := h.s.CreateClassicGame(newGame)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"id": id})
+	c.JSON(http.StatusCreated, classicGame)
 }
 func (h *ClassicGameHandler) GetAllClassicGames(c *gin.Context) {
 	games, err := h.s.GetAllClassicGames()

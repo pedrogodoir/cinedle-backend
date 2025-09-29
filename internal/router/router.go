@@ -9,12 +9,14 @@ import (
 	movie_router "cinedle-backend/internal/modules/movies/routes"
 	movie_service "cinedle-backend/internal/modules/movies/services"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func Run() {
 	cfg := config.LoadConfig()
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	//setup routes
 	movieRepo := movie_repo.NewMoviesRepository()
