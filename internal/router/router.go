@@ -5,7 +5,6 @@ import (
 	classic_game_handler "cinedle-backend/internal/modules/classicGame/handlers"
 	classic_game_router "cinedle-backend/internal/modules/classicGame/routes"
 	movie_handler "cinedle-backend/internal/modules/movies/handlers"
-	movie_repo "cinedle-backend/internal/modules/movies/repositories"
 	movie_router "cinedle-backend/internal/modules/movies/routes"
 	movie_service "cinedle-backend/internal/modules/movies/services"
 
@@ -19,8 +18,7 @@ func Run() {
 	r.Use(cors.Default())
 
 	//setup routes
-	movieRepo := movie_repo.NewMoviesRepository()
-	movieService := movie_service.NewMoviesService(movieRepo)
+	movieService := movie_service.NewMoviesService()
 	movieHandler := movie_handler.NewMoviesHandler(movieService)
 	movie_router.Routes(r, movieHandler)
 	classicGameHandler := classic_game_handler.NewClassicGameHandler()
