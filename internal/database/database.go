@@ -7,13 +7,13 @@ import (
 	"log"
 	"sync"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
-	db   *pgx.Conn
-	once sync.Once
-	ctx  context.Context
+	dbPool *pgxpool.Pool
+	once   sync.Once
+	ctx    context.Context
 )
 
 func connect() {
@@ -21,27 +21,26 @@ func connect() {
 	ctx = context.Background()
 
 	var err error
-	db, err = pgx.Connect(ctx, cfg.DatabaseURL)
+	dbPool, err = pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("❌ Erro ao conectar ao banco de dados: %v", err)
 	}
 
-	log.Println("✅ Conectado ao banco de dados com sucesso!")
+	log.Println("✅ Pool de conexões do banco de dados inicializado com sucesso!")
 }
 
-func GetDB() *pgx.Conn {
+func GetDBPool() *pgxpool.Pool {
 	once.Do(connect)
-	return db
+	return dbPool
 }
+
 func GetCtx() context.Context {
 	once.Do(connect)
 	return ctx
 }
 
-func CloseDB() {
-	err := db.Close(ctx)
-	if err != nil {
-		log.Fatalf("❌ Erro ao fechar a conexão do banco de dados: %v", err)
-	}
-	log.Println("✅ Conexão do banco de dados fechada com sucesso!")
+func CloseDBPool() {
+	once.Do(connect)
+	dbPool.Close()
+	log.Println("✅ Pool de conexões do banco de dados fechado com sucesso!")
 }

@@ -6,6 +6,7 @@ import (
 	"cinedle-backend/internal/modules/classicGame/models"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ClassicGameRepository interface {
@@ -17,12 +18,12 @@ type ClassicGameRepository interface {
 }
 
 type classicGameRepo struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 func NewClassicGameRepository() ClassicGameRepository {
 	return &classicGameRepo{
-		db: database.GetDB(),
+		db: database.GetDBPool(),
 	}
 }
 

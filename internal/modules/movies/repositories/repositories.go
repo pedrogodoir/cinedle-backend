@@ -6,6 +6,7 @@ import (
 	"cinedle-backend/internal/modules/movies/models"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type MoviesRepository interface {
@@ -16,13 +17,13 @@ type MoviesRepository interface {
 
 // moviesRepo é a implementação concreta do repositório
 type moviesRepo struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
 // NewMoviesRepository retorna uma instância do repositório
 func NewMoviesRepository() MoviesRepository {
 	return &moviesRepo{
-		db: database.GetDB(),
+		db: database.GetDBPool(),
 	}
 }
 
