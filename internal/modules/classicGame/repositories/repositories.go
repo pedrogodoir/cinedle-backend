@@ -28,7 +28,7 @@ func NewClassicGameRepository() ClassicGameRepository {
 }
 
 func (r *classicGameRepo) GetClassicGameById(id int) (models.ClassicGame, error) {
-	var query string = `SELECT id, title, date, total_guesses FROM classic_games WHERE movie_id = $1;`
+	var query string = `SELECT movie_id, title, date, total_guesses FROM classic_games WHERE movie_id = $1;`
 	var movieRes models.ClassicGame
 
 	row := r.db.QueryRow(database.GetCtx(),
