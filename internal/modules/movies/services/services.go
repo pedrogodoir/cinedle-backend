@@ -21,9 +21,9 @@ type moviesService struct {
 }
 
 // NewMoviesService cria uma instância do service
-func NewMoviesService(repo repository.MoviesRepository) MoviesService {
+func NewMoviesService() MoviesService {
 	return &moviesService{
-		repo: repo,
+		repo: repository.NewMoviesRepository(),
 	}
 }
 

@@ -95,3 +95,25 @@ func (h *ClassicGameHandler) DeleteClassicGame(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "\"Jogo clássico\" deletado com sucesso"})
 }
+func (h *ClassicGameHandler) ValidateGuess(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+	_, res, err := h.s.ValidateGuess(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+func (h *ClassicGameHandler) GetTodayClassicGame(c *gin.Context) {
+	classicGame, err := h.s.GetTodaysClassicGame()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, classicGame)
+}

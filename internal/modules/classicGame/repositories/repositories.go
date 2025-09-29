@@ -4,6 +4,8 @@ package repository
 import (
 	"cinedle-backend/internal/database"
 	"cinedle-backend/internal/modules/classicGame/models"
+	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,6 +17,7 @@ type ClassicGameRepository interface {
 	GetAllClassicGames() ([]models.ClassicGame, error)
 	UpdateClassicGame(id int, game models.ClassicGame) error
 	DeleteClassicGame(id int) error
+	GetClassicGameByDate(date time.Time) (models.ClassicGame, error)
 }
 
 type classicGameRepo struct {
@@ -108,4 +111,24 @@ func (r *classicGameRepo) DeleteClassicGame(id int) error {
 		id,
 	)
 	return err
+}
+func (r *classicGameRepo) GetClassicGameByDate(date time.Time) (models.ClassicGame, error) {
+	var data string = strings.Split(date.String(), " ")[0]
+	var query string = `SELECT movie_id, title, date, total_guesses FROM classic_games WHERE date = $1`
+	var movieRes models.ClassicGame
+	row := r.db.QueryRow(database.GetCtx(),
+		query,
+		data,
+	)
+	err := row.Scan(
+		&movieRes.ID,
+		&movieRes.Title,
+		&movieRes.Date,
+		&movieRes.TotalGuesses,
+	)
+
+	if err != nil {
+		return models.ClassicGame{}, err
+	}
+	return movieRes, nil
 }
