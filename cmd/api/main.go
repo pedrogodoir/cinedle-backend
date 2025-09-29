@@ -8,7 +8,7 @@ import (
 
 func main() {
 	config.LoadConfig()
-	database.GetDB()
+	database.GetDBPool()
 	//router.Run()
 	// Example query to test the connection
 	// Close the database connection when done
