@@ -2,20 +2,27 @@ package router
 
 import (
 	"cinedle-backend/internal/config"
-	movie_router "cinedle-backend/internal/movies/routes"
+	classic_game_handler "cinedle-backend/internal/modules/classicGame/handlers"
+	classic_game_router "cinedle-backend/internal/modules/classicGame/routes"
+	movie_handler "cinedle-backend/internal/modules/movies/handlers"
+	movie_router "cinedle-backend/internal/modules/movies/routes"
+	movie_service "cinedle-backend/internal/modules/movies/services"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func Run() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		panic("Failed to load config")
-	}
+	cfg := config.LoadConfig()
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	//setup routes
-	movie_router.Routes(r)
+	movieService := movie_service.NewMoviesService()
+	movieHandler := movie_handler.NewMoviesHandler(movieService)
+	movie_router.Routes(r, movieHandler)
+	classicGameHandler := classic_game_handler.NewClassicGameHandler()
+	classic_game_router.Routes(r, classicGameHandler)
 
 	r.Run(":" + cfg.Port)
 }
