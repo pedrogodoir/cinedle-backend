@@ -4,14 +4,15 @@ import (
 	"cinedle-backend/internal/config"
 	"cinedle-backend/internal/database"
 	"cinedle-backend/internal/router"
+	"cinedle-backend/internal/scheduler"
 )
 
 func main() {
 	config.LoadConfig()
 	database.GetDBPool()
-	//router.Run()
-	// Example query to test the connection
-	// Close the database connection when done
+
+	c := scheduler.StartFilmeDoDiaScheduler()
+	defer c.Stop()
 
 	router.Run()
 }
