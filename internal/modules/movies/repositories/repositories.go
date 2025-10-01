@@ -13,6 +13,7 @@ type MoviesRepository interface {
 	GetMovieById(id int) (models.MovieRes, error)
 	GetMovieByTitle(title string) (models.MovieRes, error)
 	GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error)
+	GetMovieCount() (int, error)
 }
 
 // moviesRepo é a implementação concreta do repositório
@@ -141,4 +142,20 @@ func (r *moviesRepo) GetMovieSummaryByTitle(title string) ([]models.MovieSummary
 	}
 
 	return movieRes, nil
+}
+
+// select count(nome) from Produtos;
+func (r *moviesRepo) GetMovieCount() (int, error) {
+	var count int
+
+	// QueryRow retorna só 1 linha
+	err := r.db.QueryRow(
+		database.GetCtx(),
+		`SELECT COUNT(id) FROM movies;`,
+	).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
