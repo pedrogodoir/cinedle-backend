@@ -107,7 +107,7 @@ func (h *ClassicGameHandler) ValidateGuess(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"movie": movie, "res": res})
+	c.JSON(http.StatusOK, gin.H{"movie": movie, "res ": res})
 }
 func (h *ClassicGameHandler) GetTodayClassicGame(c *gin.Context) {
 	classicGame, err := h.s.GetTodaysClassicGame()
