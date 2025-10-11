@@ -3,7 +3,6 @@ package utils
 import (
 	model_classic_game "cinedle-backend/internal/modules/classicGame/models"
 	model_movie "cinedle-backend/internal/modules/movies/models"
-	"fmt"
 	"strings"
 )
 
@@ -29,30 +28,37 @@ func CompareMovies(correct, guess model_movie.MovieRes) model_classic_game.Class
 	// ReleaseDate
 	if guess.ReleaseDate.Equal(correct.ReleaseDate) {
 		cg.ReleaseDate = "correct"
+	} else if guess.ReleaseDate.Before(correct.ReleaseDate) {
+		cg.ReleaseDate = "less"
 	} else {
-		cg.ReleaseDate = "incorrect"
+		cg.ReleaseDate = "more"
 	}
-
 	// Budget
-	if guess.Budget.Equal(correct.Budget) {
+	switch guess.Budget.Compare(correct.Budget) {
+	case 0:
 		cg.Budget = "correct"
-	} else {
-		cg.Budget = "incorrect"
+	case -1:
+		cg.Budget = "less"
+	default:
+		cg.Budget = "more"
 	}
-
 	// TicketOffice
-	if guess.TicketOffice.Compare(correct.TicketOffice) == 0 {
+	switch guess.TicketOffice.Compare(correct.TicketOffice) {
+	case 0:
 		cg.TicketOffice = "correct"
-	} else {
-		cg.TicketOffice = "incorrect"
-		fmt.Println(guess.TicketOffice, correct.TicketOffice)
+	case -1:
+		cg.TicketOffice = "less"
+	default:
+		cg.TicketOffice = "more"
 	}
 
 	// VoteAverage
 	if guess.VoteAverage == correct.VoteAverage {
 		cg.VoteAverage = "correct"
+	} else if guess.VoteAverage < correct.VoteAverage {
+		cg.VoteAverage = "less"
 	} else {
-		cg.VoteAverage = "incorrect"
+		cg.VoteAverage = "more"
 	}
 
 	// Genres
