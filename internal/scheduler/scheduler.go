@@ -35,8 +35,6 @@ func StartFilmeDoDiaScheduler(svc_classic classic_game_service.ClassicGameServic
 		for {
 			randomId = rand.Intn(movie_count-1) + 1 // sorteia entre 1 e movie_count
 			searchedGame, err := svc_classic.GetClassicGameById(randomId)
-			fmt.Println("Oq veio:", searchedGame)
-
 			if searchedGame.ID == 0 {
 				fmt.Println("ID vago:", randomId)
 				break
