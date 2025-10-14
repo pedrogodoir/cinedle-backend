@@ -20,6 +20,7 @@ type ClassicGameService interface {
 	DeleteClassicGame(id int) error
 	ValidateGuess(id int) (model_movie.MovieRes, models.ClassicGameGuess, error)
 	GetTodaysClassicGame() (model_movie.MovieRes, error)
+	DrawMovie(date time.Time) int
 }
 type classicGameService struct {
 	repo repository.ClassicGameRepository
@@ -80,20 +81,21 @@ func (s *classicGameService) GetTodaysClassicGame() (model_movie.MovieRes, error
 
 	// Nenhum jogo encontrado para hoje
 	if classic_game.ID == 0 {
-		return movie_service.GetMovieById(s.drawMovie(movie_service, time.Now()))
+		return movie_service.GetMovieById(s.DrawMovie(time.Now()))
 	}
 
 	// Retorna o filme associado ao jogo clássico
 	return movie_service.GetMovieById(classic_game.ID)
 }
 
-func (s *classicGameService) drawMovie(svc_movie movie_service.MoviesService, date time.Time) int {
+func (s *classicGameService) DrawMovie(date time.Time) int {
+	movie_service := movie_service.NewMoviesService()
 
 	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 
 	fmt.Println("Sorteando filme do dia em:", date)
 
-	movie_count, err := svc_movie.GetMovieCount()
+	movie_count, err := movie_service.GetMovieCount()
 
 	if err != nil {
 		fmt.Println("Erro ao buscar quantidade de filmes")
@@ -116,7 +118,7 @@ func (s *classicGameService) drawMovie(svc_movie movie_service.MoviesService, da
 		fmt.Println("ID já existe, sorteando outro:", randomId)
 	}
 
-	searchedMovie, err := svc_movie.GetMovieById(randomId)
+	searchedMovie, err := movie_service.GetMovieById(randomId)
 	if err != nil {
 		return -1
 	}
