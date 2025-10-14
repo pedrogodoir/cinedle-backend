@@ -4,6 +4,7 @@ package repository
 import (
 	"cinedle-backend/internal/database"
 	"cinedle-backend/internal/modules/classicGame/models"
+	"errors"
 	"strings"
 	"time"
 
@@ -128,8 +129,10 @@ func (r *classicGameRepo) GetClassicGameByDate(date time.Time) (models.ClassicGa
 	)
 
 	if err != nil {
-
-		return models.ClassicGame{ID: 1, Title: "Inception", Date: time.Now(), TotalGuesses: 0}, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.ClassicGame{}, nil // sem erro, mas struct vazio
+		}
+		return models.ClassicGame{}, err // erro real
 	}
 	return movieRes, nil
 }
