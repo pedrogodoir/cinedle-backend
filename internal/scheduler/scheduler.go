@@ -15,7 +15,12 @@ import (
 func StartFilmeDoDiaScheduler(svc_classic classic_game_service.ClassicGameService, svc_movie movie_service.MoviesService) *cron.Cron {
 	c := cron.New()
 	// Sortear filme todo dia meia noite
+
 	c.AddFunc("0 0 * * *", func() {
+
+		//Funcao para sortear dia:
+		//svc_classic.drawMovie()
+
 		fmt.Println("Sorteando filme do dia em:", time.Now())
 
 		movie_count, err := svc_movie.GetMovieCount()
@@ -26,7 +31,7 @@ func StartFilmeDoDiaScheduler(svc_classic classic_game_service.ClassicGameServic
 		}
 
 		var randomId int
-
+		var searchedGame models.ClassicGame
 		for {
 			randomId = rand.Intn(movie_count-1) + 1 // sorteia entre 1 e movie_count
 			searchedGame, err := svc_classic.GetClassicGameById(randomId)
@@ -49,7 +54,7 @@ func StartFilmeDoDiaScheduler(svc_classic classic_game_service.ClassicGameServic
 
 		game := models.ClassicGame{
 			ID:           randomId,
-			Title:        "Filme sorteado",
+			Title:        searchedGame.Title,
 			Date:         tomorrow,
 			TotalGuesses: 0,
 		}

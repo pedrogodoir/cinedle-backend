@@ -73,6 +73,12 @@ func (s *classicGameService) GetTodaysClassicGame() (model_movie.MovieRes, error
 	if err != nil {
 		return model_movie.MovieRes{}, err
 	}
+	// Nenhum jogo encontrado para hoje
+	if classic_game.ID == 0 {
+		// drawMovie()
+		return model_movie.MovieRes{}, nil
+	}
 
+	// Retorna o filme associado ao jogo clássico
 	return movie_service.GetMovieById(classic_game.ID)
 }
