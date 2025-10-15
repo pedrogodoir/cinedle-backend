@@ -96,13 +96,17 @@ func (h *ClassicGameHandler) DeleteClassicGame(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "\"Jogo clássico\" deletado com sucesso"})
 }
 func (h *ClassicGameHandler) ValidateGuess(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+	//pega do body o dia e o id do filme
+	var requestBody struct {
+		MovieID int    `json:"movie_id"`
+		Date    string `json:"date"`
+	}
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos: " + err.Error()})
 		return
 	}
-	movie, res, err := h.s.ValidateGuess(id)
+
+	movie, res, err := h.s.ValidateGuess(requestBody.MovieID, requestBody.Date)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

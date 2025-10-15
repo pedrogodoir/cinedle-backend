@@ -15,7 +15,7 @@ func Routes(route *gin.Engine, h *handlers.ClassicGameHandler) {
 		classicGames.PUT("/:id", h.UpdateClassicGame)
 		classicGames.DELETE("/:id", h.DeleteClassicGame)
 		classicGames.GET("/:id", h.GetClassicGameById)
-		classicGames.GET("/guess/:id", h.ValidateGuess)
+		classicGames.GET("/guess/", h.ValidateGuess)
 
 	}
 }

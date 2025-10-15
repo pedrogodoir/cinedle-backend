@@ -18,8 +18,9 @@ type ClassicGameService interface {
 	GetAllClassicGames() ([]models.ClassicGame, error)
 	UpdateClassicGame(id int, game models.ClassicGame) error
 	DeleteClassicGame(id int) error
-	ValidateGuess(id int) (model_movie.MovieRes, models.ClassicGameGuess, error)
+	ValidateGuess(id int, date string) (model_movie.MovieRes, models.ClassicGameGuess, error)
 	GetTodaysClassicGame() (model_movie.MovieRes, error)
+	GetClassicGameByDate(date time.Time) (models.ClassicGame, error)
 	DrawMovie(date time.Time) int
 }
 type classicGameService struct {
@@ -56,13 +57,22 @@ func (s *classicGameService) UpdateClassicGame(id int, game models.ClassicGame) 
 func (s *classicGameService) DeleteClassicGame(id int) error {
 	return s.repo.DeleteClassicGame(id)
 }
-func (s *classicGameService) ValidateGuess(id int) (model_movie.MovieRes, models.ClassicGameGuess, error) {
+func (s *classicGameService) ValidateGuess(movie_id int, data string) (model_movie.MovieRes, models.ClassicGameGuess, error) {
 	movie_service := movie_service.NewMoviesService()
-	guess, err := movie_service.GetMovieById(id)
+	guess, err := movie_service.GetMovieById(movie_id)
 	if err != nil {
 		return model_movie.MovieRes{}, models.ClassicGameGuess{}, err
 	}
-	correct, err := s.GetTodaysClassicGame()
+
+	parsedDate, err := time.Parse("2006-01-02", data)
+	if err != nil {
+		return model_movie.MovieRes{}, models.ClassicGameGuess{}, err
+	}
+	daysGame, err := s.GetClassicGameByDate(parsedDate)
+	if err != nil {
+		return model_movie.MovieRes{}, models.ClassicGameGuess{}, err
+	}
+	correct, err := movie_service.GetMovieById(daysGame.ID)
 	if err != nil {
 		return model_movie.MovieRes{}, models.ClassicGameGuess{}, err
 	}
@@ -137,4 +147,7 @@ func (s *classicGameService) DrawMovie(date time.Time) int {
 	}
 
 	return created.ID
+}
+func (s *classicGameService) GetClassicGameByDate(date time.Time) (models.ClassicGame, error) {
+	return s.repo.GetClassicGameByDate(date)
 }
