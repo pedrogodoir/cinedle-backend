@@ -26,9 +26,11 @@ func CompareMovies(correct, guess model_movie.MovieRes) model_classic_game.Class
 	}
 
 	// ReleaseDate
-	if guess.ReleaseDate.Equal(correct.ReleaseDate) {
+	guessYear := guess.ReleaseDate.Year()
+	correctYear := correct.ReleaseDate.Year()
+	if guessYear == correctYear {
 		cg.ReleaseDate = "correct"
-	} else if guess.ReleaseDate.Before(correct.ReleaseDate) {
+	} else if guessYear < correctYear {
 		cg.ReleaseDate = "less"
 	} else {
 		cg.ReleaseDate = "more"
