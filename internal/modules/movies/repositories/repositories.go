@@ -30,7 +30,7 @@ func NewMoviesRepository() MoviesRepository {
 
 func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 	var query string = `SELECT 
-    m.id, m.title, m.release_date, m.budget, m.ticket_office, m.vote_average,
+    m.id, m.title, m.poster, m.release_date, m.budget, m.ticket_office, m.vote_average,
     COALESCE(JSON_AGG(DISTINCT g) FILTER (WHERE g.id IS NOT NULL), '[]') AS genres,
     COALESCE(JSON_AGG(DISTINCT c) FILTER (WHERE c.id IS NOT NULL), '[]') AS companies,
     COALESCE(JSON_AGG(DISTINCT d) FILTER (WHERE d.id IS NOT NULL), '[]') AS directors,
@@ -56,6 +56,7 @@ func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 	err := row.Scan(
 		&movieRes.ID,
 		&movieRes.Title,
+		&movieRes.Poster,
 		&movieRes.ReleaseDate,
 		&movieRes.Budget,
 		&movieRes.TicketOffice,
@@ -78,7 +79,7 @@ func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 }
 func (r *moviesRepo) GetMovieByTitle(title string) (models.MovieRes, error) {
 	var query string = `SELECT 
-    m.id, m.title, m.release_date, m.budget, m.ticket_office, m.vote_average,
+    m.id, m.title, m.poster, m.release_date, m.budget, m.ticket_office, m.vote_average,
     COALESCE(JSON_AGG(DISTINCT g) FILTER (WHERE g.id IS NOT NULL), '[]') AS genres,
     COALESCE(JSON_AGG(DISTINCT c) FILTER (WHERE c.id IS NOT NULL), '[]') AS companies,
     COALESCE(JSON_AGG(DISTINCT d) FILTER (WHERE d.id IS NOT NULL), '[]') AS directors,
@@ -102,6 +103,7 @@ func (r *moviesRepo) GetMovieByTitle(title string) (models.MovieRes, error) {
 	err := row.Scan(
 		&movieRes.ID,
 		&movieRes.Title,
+		&movieRes.Poster,
 		&movieRes.ReleaseDate,
 		&movieRes.Budget,
 		&movieRes.TicketOffice,
