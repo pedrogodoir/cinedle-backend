@@ -57,14 +57,14 @@ func (s *classicGameService) UpdateClassicGame(id int, game models.ClassicGame) 
 func (s *classicGameService) DeleteClassicGame(id int) error {
 	return s.repo.DeleteClassicGame(id)
 }
-func (s *classicGameService) ValidateGuess(movie_id int, data string) (model_movie.MovieRes, models.ClassicGameGuess, error) {
+func (s *classicGameService) ValidateGuess(movie_id int, date string) (model_movie.MovieRes, models.ClassicGameGuess, error) {
 	movie_service := movie_service.NewMoviesService()
 	guess, err := movie_service.GetMovieById(movie_id)
 	if err != nil {
 		return model_movie.MovieRes{}, models.ClassicGameGuess{}, err
 	}
 
-	parsedDate, err := time.Parse("2006-01-02", data)
+	parsedDate, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return model_movie.MovieRes{}, models.ClassicGameGuess{}, err
 	}
@@ -149,5 +149,16 @@ func (s *classicGameService) DrawMovie(date time.Time) int {
 	return created.ID
 }
 func (s *classicGameService) GetClassicGameByDate(date time.Time) (models.ClassicGame, error) {
+	game, err := s.repo.GetClassicGameByDate(date)
+
+	// Filme não encontrado para o dia. Sortear.
+	if game.ID == 0 {
+		draw_id := s.DrawMovie(date)
+		return s.repo.GetClassicGameById(draw_id)
+	}
+	if err != nil {
+		fmt.Println("Erro ao buscar classic game")
+	}
+
 	return s.repo.GetClassicGameByDate(date)
 }
