@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"cinedle-backend/internal/modules/classicGame/models"
 	services "cinedle-backend/internal/modules/classicGame/services"
@@ -96,15 +97,20 @@ func (h *ClassicGameHandler) DeleteClassicGame(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "\"Jogo clássico\" deletado com sucesso"})
 }
 func (h *ClassicGameHandler) ValidateGuess(c *gin.Context) {
-	idParam := c.Param("id")
-	id, err := strconv.Atoi(idParam)
+
+	movieID := c.Query("movie_id")
+	defaultDate := c.DefaultQuery("date", time.Now().Format("2006-01-02"))
+	date := c.DefaultQuery("date", defaultDate)
+
+	id, err := strconv.Atoi(movieID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
 		return
 	}
-	movie, res, err := h.s.ValidateGuess(id)
+
+	movie, res, err := h.s.ValidateGuess(id, date)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Not implemented"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"movie": movie, "res": res})

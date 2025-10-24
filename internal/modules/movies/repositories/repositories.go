@@ -13,6 +13,7 @@ type MoviesRepository interface {
 	GetMovieById(id int) (models.MovieRes, error)
 	GetMovieByTitle(title string) (models.MovieRes, error)
 	GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error)
+	GetMovieCount() (int, error)
 }
 
 // moviesRepo é a implementação concreta do repositório
@@ -29,7 +30,7 @@ func NewMoviesRepository() MoviesRepository {
 
 func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 	var query string = `SELECT 
-    m.id, m.title, m.release_date, m.budget, m.ticket_office, m.vote_average,
+    m.id, m.title, m.poster, m.release_date, m.budget, m.ticket_office, m.vote_average,
     COALESCE(JSON_AGG(DISTINCT g) FILTER (WHERE g.id IS NOT NULL), '[]') AS genres,
     COALESCE(JSON_AGG(DISTINCT c) FILTER (WHERE c.id IS NOT NULL), '[]') AS companies,
     COALESCE(JSON_AGG(DISTINCT d) FILTER (WHERE d.id IS NOT NULL), '[]') AS directors,
@@ -55,6 +56,7 @@ func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 	err := row.Scan(
 		&movieRes.ID,
 		&movieRes.Title,
+		&movieRes.Poster,
 		&movieRes.ReleaseDate,
 		&movieRes.Budget,
 		&movieRes.TicketOffice,
@@ -77,7 +79,7 @@ func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 }
 func (r *moviesRepo) GetMovieByTitle(title string) (models.MovieRes, error) {
 	var query string = `SELECT 
-    m.id, m.title, m.release_date, m.budget, m.ticket_office, m.vote_average,
+    m.id, m.title, m.poster, m.release_date, m.budget, m.ticket_office, m.vote_average,
     COALESCE(JSON_AGG(DISTINCT g) FILTER (WHERE g.id IS NOT NULL), '[]') AS genres,
     COALESCE(JSON_AGG(DISTINCT c) FILTER (WHERE c.id IS NOT NULL), '[]') AS companies,
     COALESCE(JSON_AGG(DISTINCT d) FILTER (WHERE d.id IS NOT NULL), '[]') AS directors,
@@ -101,6 +103,7 @@ func (r *moviesRepo) GetMovieByTitle(title string) (models.MovieRes, error) {
 	err := row.Scan(
 		&movieRes.ID,
 		&movieRes.Title,
+		&movieRes.Poster,
 		&movieRes.ReleaseDate,
 		&movieRes.Budget,
 		&movieRes.TicketOffice,
@@ -141,4 +144,20 @@ func (r *moviesRepo) GetMovieSummaryByTitle(title string) ([]models.MovieSummary
 	}
 
 	return movieRes, nil
+}
+
+// select count(nome) from Produtos;
+func (r *moviesRepo) GetMovieCount() (int, error) {
+	var count int
+
+	// QueryRow retorna só 1 linha
+	err := r.db.QueryRow(
+		database.GetCtx(),
+		`SELECT COUNT(id) FROM movies;`,
+	).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

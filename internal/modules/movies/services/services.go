@@ -13,6 +13,7 @@ type MoviesService interface {
 	GetMovieById(id int) (models.MovieRes, error)
 	GetMovieByTitle(title string) (models.MovieRes, error)
 	GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error)
+	GetMovieCount() (int, error)
 }
 
 // moviesService é a implementação concreta
@@ -40,4 +41,8 @@ func (s *moviesService) GetMovieSummaryByTitle(title string) ([]models.MovieSumm
 	t := utils.ToTitle(title)
 	t = strings.Trim(t, " ")
 	return s.repo.GetMovieSummaryByTitle(t)
+}
+
+func (s *moviesService) GetMovieCount() (int, error) {
+	return s.repo.GetMovieCount()
 }
