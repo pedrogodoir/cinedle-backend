@@ -23,10 +23,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Define o diretório de trabalho
-WORKDIR /root/
+WORKDIR /app
 
-# Copia o binário compilado da etapa anterior
+# Copia o binário e o arquivo openapi.yaml 
 COPY --from=builder /app/server .
+COPY --from=builder /app/openapi.yaml .
 
 # Expõe a porta da API
 EXPOSE 8080
