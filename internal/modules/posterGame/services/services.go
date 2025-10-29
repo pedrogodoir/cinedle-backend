@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"cinedle-backend/internal/config"
 	movies_service "cinedle-backend/internal/modules/movies/services"
-	"cinedle-backend/internal/modules/poster/models"
-	repository "cinedle-backend/internal/modules/poster/repositories"
+	"cinedle-backend/internal/modules/posterGame/models"
+	repository "cinedle-backend/internal/modules/posterGame/repositories"
 	image_manipualtor "cinedle-backend/internal/utils/image_manipulator"
 	"context"
 	"fmt"
@@ -22,9 +22,10 @@ import (
 
 type PosterGameService interface {
 	GetPosterGameById(id int) (models.PosterGame, error)
+	GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error)
 	createPosterGame(posterGame models.PosterGame) ([]int, error)
 	UpdatePosterGame(posterGame models.PosterGame) error
-	//ValidateGuess(movie_id int, date string, iteration int) (models.PosterGame, error)
+	ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error)
 	generatePosterImages(movie_id int) ([]image.Image, error)
 	saveGeneratedImages(movie_id int, date string) ([]string, error)
 }
@@ -45,9 +46,27 @@ func (s *posterGameService) UpdatePosterGame(posterGame models.PosterGame) error
 	return s.repo.UpdatePosterGame(posterGame)
 }
 
-// func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGame, error) {
-// 	s.repo.GetPosterGameById(movie_id)
-// }
+func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error) {
+	posterGame, err := s.repo.GetPosterGameByDateAndIteration(date, iteration)
+
+	if err != nil {
+		return models.PosterGameRes{}, err
+	}
+	correct := false
+	if posterGame.MovieID == movie_id {
+		correct = true
+	}
+	next, err := s.repo.GetPosterGameByDateAndIteration(date, iteration+1)
+	if err != nil {
+		return models.PosterGameRes{}, err
+	}
+
+	return models.PosterGameRes{
+		PosterGame: posterGame,
+		Correct:    correct,
+		NextImage:  next.ImageURL,
+	}, nil
+}
 
 /*Nessa função gera as imagens do pôster para um filme específico e salva no Poster Game no dia específico*/
 func (s *posterGameService) generatePosterImages(movie_id int) ([]image.Image, error) {
@@ -145,4 +164,8 @@ func (s *posterGameService) createPosterGame(posterGame models.PosterGame) ([]in
 		i--
 	}
 	return ids, nil
+}
+
+func (s *posterGameService) GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error) {
+	return s.repo.GetPosterGameByDateAndIteration(date, iteration)
 }

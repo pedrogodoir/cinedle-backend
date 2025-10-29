@@ -9,6 +9,9 @@ import (
 	movie_service "cinedle-backend/internal/modules/movies/services"
 	"net/http"
 
+	poster_game_handler "cinedle-backend/internal/modules/posterGame/handlers"
+	poster_game_router "cinedle-backend/internal/modules/posterGame/routes"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +29,7 @@ func Run() {
 		c.File("./openapi.yaml")
 	})
 
-	// Página simples com Swagger UI (via CDN) em /docs
+	// Página simples com Swagger UI (via CDN) em /docs, meio macaco, mas funciona
 	r.GET("/docs", func(c *gin.Context) {
 		html := `<!DOCTYPE html>
 <html>
@@ -60,6 +63,7 @@ func Run() {
 	movie_router.Routes(r, movieHandler)
 	classicGameHandler := classic_game_handler.NewClassicGameHandler()
 	classic_game_router.Routes(r, classicGameHandler)
-
+	posterGameHandler := poster_game_handler.NewPosterGameHandler()
+	poster_game_router.Routes(r, posterGameHandler)
 	r.Run(":" + cfg.Port)
 }

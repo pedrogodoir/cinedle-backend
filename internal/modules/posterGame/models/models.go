@@ -11,4 +11,5 @@ type PosterGame struct {
 type PosterGameRes struct {
 	PosterGame PosterGame `json:"poster_game"`
 	Correct    bool       `json:"correct"`
+	NextImage  string     `json:"next_image,omitempty"`
 }

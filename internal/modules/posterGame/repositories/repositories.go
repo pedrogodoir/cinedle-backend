@@ -2,7 +2,7 @@ package repository
 
 import (
 	"cinedle-backend/internal/database"
-	"cinedle-backend/internal/modules/poster/models"
+	"cinedle-backend/internal/modules/posterGame/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
