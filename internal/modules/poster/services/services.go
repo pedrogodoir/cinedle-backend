@@ -1,21 +1,32 @@
 package service
 
 import (
+	"bytes"
+	"cinedle-backend/internal/config"
 	movies_service "cinedle-backend/internal/modules/movies/services"
 	"cinedle-backend/internal/modules/poster/models"
 	repository "cinedle-backend/internal/modules/poster/repositories"
 	image_manipualtor "cinedle-backend/internal/utils/image_manipulator"
+	"context"
 	"fmt"
 	"image"
 	"image/jpeg"
+	"io"
+	"log"
 	"math/rand"
 	"os"
+
+	"github.com/imagekit-developer/imagekit-go/v2"
+	"github.com/imagekit-developer/imagekit-go/v2/option"
 )
 
 type PosterGameService interface {
 	GetPosterGameById(id int) (models.PosterGame, error)
+	createPosterGame(posterGame models.PosterGame) ([]int, error)
+	UpdatePosterGame(posterGame models.PosterGame) error
 	//ValidateGuess(movie_id int, date string, iteration int) (models.PosterGame, error)
-	generatePosterImages(movie_id int, date string) ([]image.Image, error)
+	generatePosterImages(movie_id int) ([]image.Image, error)
+	saveGeneratedImages(movie_id int, date string) ([]string, error)
 }
 type posterGameService struct {
 	repo repository.PosterGameRepository
@@ -30,13 +41,16 @@ func NewPosterGameService() PosterGameService {
 func (s *posterGameService) GetPosterGameById(id int) (models.PosterGame, error) {
 	return s.repo.GetPosterGameById(id)
 }
+func (s *posterGameService) UpdatePosterGame(posterGame models.PosterGame) error {
+	return s.repo.UpdatePosterGame(posterGame)
+}
 
 // func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGame, error) {
 // 	s.repo.GetPosterGameById(movie_id)
 // }
 
 /*Nessa função gera as imagens do pôster para um filme específico e salva no Poster Game no dia específico*/
-func (s *posterGameService) generatePosterImages(movie_id int, date string) ([]image.Image, error) {
+func (s *posterGameService) generatePosterImages(movie_id int) ([]image.Image, error) {
 	movie, err := movies_service.NewMoviesService().GetMovieById(movie_id)
 	if err != nil {
 		return nil, err
@@ -71,4 +85,64 @@ func (s *posterGameService) generatePosterImages(movie_id int, date string) ([]i
 	}
 
 	return imgs, nil
+}
+func (s *posterGameService) saveGeneratedImages(movie_id int, date string) ([]string, error) {
+	imgs, err := s.generatePosterImages(movie_id)
+	results := []string{}
+	if err != nil {
+		return nil, err
+	}
+	iteration := len(imgs)
+	// abre conexão com imagekit
+	key := config.LoadConfig().ImageKitKey
+	client := imagekit.NewClient(
+		option.WithPrivateKey(key),
+	)
+	var buf bytes.Buffer
+	// Save the generated images
+	for _, img := range imgs {
+		err := jpeg.Encode(&buf, img, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var file io.Reader = &buf
+		response, err := client.Files.Upload(context.TODO(), imagekit.FileUploadParams{
+			File:     file,
+			FileName: fmt.Sprintf("%s-%d.jpg", date, iteration),
+		})
+		if err != nil {
+			log.Fatalf("Erro ao fazer upload do arquivo: %v", err)
+		}
+		results = append(results, response.URL)
+		iteration--
+		buf.Reset()
+
+	}
+	return results, nil
+}
+
+/* nunca se cria sómente um posterGame,  cria um para cada iteração*/
+func (s *posterGameService) createPosterGame(posterGame models.PosterGame) ([]int, error) {
+	imageURLs, err := s.saveGeneratedImages(posterGame.MovieID, posterGame.Date)
+	if err != nil {
+		return nil, err
+	}
+	var ids []int
+	i := len(imageURLs)
+	for _, url := range imageURLs {
+		id, err := s.repo.CreatePosterGame(models.PosterGame{
+			MovieID:   posterGame.MovieID,
+			Name:      posterGame.Name,
+			Date:      posterGame.Date,
+			ImageURL:  url,
+			Iteration: i,
+		})
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+		i--
+	}
+	return ids, nil
 }

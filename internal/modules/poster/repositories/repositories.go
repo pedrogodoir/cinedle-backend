@@ -9,8 +9,10 @@ import (
 
 type PosterGameRepository interface {
 	GetPosterGameById(id int) (models.PosterGame, error)
+	CreatePosterGame(posterGame models.PosterGame) (int, error)
 	//feio, eu sei
 	GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error)
+	UpdatePosterGame(posterGame models.PosterGame) error
 }
 
 // moviesRepo é a implementação concreta do repositório
@@ -53,4 +55,32 @@ func (r *posterGameRepo) GetPosterGameByDateAndIteration(date string, iteration 
 		return models.PosterGame{ID: 0}, err
 	}
 	return posterGame, nil
+}
+
+func (r *posterGameRepo) UpdatePosterGame(posterGame models.PosterGame) error {
+	query := `UPDATE poster_games SET movie_id = $1, name = $2, image_url = $3, iteration = $4 WHERE id = $5`
+	_, err := r.db.Exec(database.GetCtx(), query,
+		posterGame.MovieID,
+		posterGame.Name,
+		posterGame.ImageURL,
+		posterGame.Iteration,
+		posterGame.ID,
+	)
+	return err
+}
+
+func (r *posterGameRepo) CreatePosterGame(posterGame models.PosterGame) (int, error) {
+	var id int
+	query := `INSERT INTO poster_games (movie_id, name, iteration, date, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	err := r.db.QueryRow(database.GetCtx(), query,
+		posterGame.MovieID,
+		posterGame.Name,
+		posterGame.Iteration,
+		posterGame.Date,
+		posterGame.ImageURL,
+	).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }

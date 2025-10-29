@@ -5,7 +5,8 @@ type PosterGame struct {
 	MovieID   int    `json:"movie_id"`
 	Name      string `json:"name"`
 	Iteration int    `json:"iteration"`
-	ImageURL  string `json:"image_ur l"`
+	Date      string `json:"date"`
+	ImageURL  string `json:"image_url"`
 }
 type PosterGameRes struct {
 	PosterGame PosterGame `json:"poster_game"`
