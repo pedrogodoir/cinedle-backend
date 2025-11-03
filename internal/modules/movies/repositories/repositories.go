@@ -14,6 +14,7 @@ type MoviesRepository interface {
 	GetMovieByTitle(title string) (models.MovieRes, error)
 	GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error)
 	GetMovieCount() (int, error)
+	GetAvailableClassicMovieIDs() ([]int, error)
 }
 
 // moviesRepo é a implementação concreta do repositório
@@ -26,6 +27,33 @@ func NewMoviesRepository() MoviesRepository {
 	return &moviesRepo{
 		db: database.GetDBPool(),
 	}
+}
+
+func (r *moviesRepo) GetAvailableClassicMovieIDs() ([]int, error) {
+	query := `
+		SELECT id FROM movies m
+		WHERE NOT EXISTS (
+			SELECT 1
+			FROM classic_games cg
+			WHERE cg.movie_id = m.id
+		);
+	`
+	rows, err := r.db.Query(database.GetCtx(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
 }
 
 func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
@@ -160,4 +188,44 @@ func (r *moviesRepo) GetMovieCount() (int, error) {
 	}
 
 	return count, nil
+}
+
+func (r *moviesRepo) GetRandomAvailableClassic() (models.MovieRes, error) {
+	var query string = `SELECT * FROM movies m WHERE NOT EXISTS (
+			SELECT 1
+			FROM classic_games cg
+			WHERE cg.movie_id = m.id
+		)
+		ORDER BY RANDOM()
+		LIMIT 1;`
+
+	var movieRes models.MovieRes
+
+	row := r.db.QueryRow(database.GetCtx(),
+		query,
+	)
+
+	err := row.Scan(
+		&movieRes.ID,
+		&movieRes.Title,
+		&movieRes.Poster,
+		&movieRes.ReleaseDate,
+		&movieRes.Budget,
+		&movieRes.TicketOffice,
+		&movieRes.VoteAverage,
+		&movieRes.Genres,
+		&movieRes.Companies,
+		&movieRes.Directors,
+		&movieRes.Actors,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			// Retorna struct vazia se não encontrar
+			return models.MovieRes{}, nil
+		}
+		return models.MovieRes{}, err
+	}
+
+	return movieRes, nil
 }
