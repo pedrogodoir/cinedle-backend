@@ -36,25 +36,25 @@ func HandleImage(url string) (image.Image, error) {
 	return img, nil
 }
 
-func PixelateRegion(src image.Image, region image.Rectangle, blockSize int) {
+func PixelateRegion(dst *image.RGBA, region image.Rectangle, blockSize int) {
 	tmp := image.NewRGBA(image.Rect(0, 0, region.Dx()/blockSize, region.Dy()/blockSize))
-	draw.ApproxBiLinear.Scale(tmp, tmp.Bounds(), src, region, draw.Over, nil)
-	draw.NearestNeighbor.Scale(src.(draw.Image), region, tmp, tmp.Bounds(), draw.Over, nil)
+	draw.ApproxBiLinear.Scale(tmp, tmp.Bounds(), dst, region, draw.Over, nil)
+	draw.NearestNeighbor.Scale(dst, region, tmp, tmp.Bounds(), draw.Over, nil)
 }
 
 func PixelateNRegions(src image.Image, regions []image.Rectangle, blockSize int) image.Image {
+	rgba := ToRGBA(src)
 	for _, region := range regions {
-		PixelateRegion(src, region, blockSize)
+		PixelateRegion(rgba, region, blockSize)
 	}
-	return src
+	return rgba
 }
-
 func GetAllRects(img image.Image) []image.Rectangle {
 	b := img.Bounds()
 	w, h := b.Dx()/3, b.Dy()/3
 	rects := []image.Rectangle{}
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
+	for i := range 3 {
+		for j := range 3 {
 			rect := image.Rect(i*w, j*h, (i+1)*w, (j+1)*h)
 			rects = append(rects, rect)
 		}

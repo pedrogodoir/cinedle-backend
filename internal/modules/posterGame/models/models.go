@@ -13,3 +13,8 @@ type PosterGameRes struct {
 	Correct    bool       `json:"correct"`
 	NextImage  string     `json:"next_image,omitempty"`
 }
+type PosterGameCreate struct {
+	MovieID int    `json:"movie_id"`
+	Date    string `json:"date"`
+	Name    string `json:"name"`
+}

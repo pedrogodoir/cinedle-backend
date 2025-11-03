@@ -42,19 +42,33 @@ func (r *posterGameRepo) GetPosterGameById(id int) (models.PosterGame, error) {
 	return posterGame, nil
 }
 
+/*isso aqui tá pegando como array para impedir que de erro caso não ache dentro do bd*/
 func (r *posterGameRepo) GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error) {
-	var posterGame models.PosterGame
+	var posterGame []models.PosterGame
 	query := `SELECT id, movie_id, name, image_url FROM poster_games WHERE date = $1 AND iteration = $2`
-	err := r.db.QueryRow(database.GetCtx(), query, date, iteration).Scan(
-		&posterGame.ID,
-		&posterGame.MovieID,
-		&posterGame.Name,
-		&posterGame.ImageURL,
-	)
+	rows, err := r.db.Query(database.GetCtx(), query, date, iteration)
 	if err != nil {
 		return models.PosterGame{ID: 0}, err
 	}
-	return posterGame, nil
+	defer rows.Close()
+	for rows.Next() {
+		var pg models.PosterGame
+		err := rows.Scan(
+			&pg.ID,
+			&pg.MovieID,
+			&pg.Name,
+			&pg.ImageURL,
+		)
+		if err != nil {
+			return models.PosterGame{ID: 0}, err
+		}
+		posterGame = append(posterGame, pg)
+	}
+	if len(posterGame) == 0 {
+		return models.PosterGame{ID: 0}, nil
+	}
+
+	return posterGame[0], nil
 }
 
 func (r *posterGameRepo) UpdatePosterGame(posterGame models.PosterGame) error {

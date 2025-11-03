@@ -14,7 +14,6 @@ import (
 	"io"
 	"log"
 	"math/rand"
-	"os"
 
 	"github.com/imagekit-developer/imagekit-go/v2"
 	"github.com/imagekit-developer/imagekit-go/v2/option"
@@ -23,7 +22,7 @@ import (
 type PosterGameService interface {
 	GetPosterGameById(id int) (models.PosterGame, error)
 	GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error)
-	createPosterGame(posterGame models.PosterGame) ([]int, error)
+	createPosterGame(posterGame models.PosterGameCreate) ([]models.PosterGame, error)
 	UpdatePosterGame(posterGame models.PosterGame) error
 	ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error)
 	generatePosterImages(movie_id int) ([]image.Image, error)
@@ -48,10 +47,24 @@ func (s *posterGameService) UpdatePosterGame(posterGame models.PosterGame) error
 
 func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error) {
 	posterGame, err := s.repo.GetPosterGameByDateAndIteration(date, iteration)
-
 	if err != nil {
 		return models.PosterGameRes{}, err
 	}
+	/*não tem no bd, cria*/
+	if posterGame.ID == 0 {
+		newPosterGame, err := s.createPosterGame(
+			models.PosterGameCreate{
+				MovieID: movie_id,
+				Date:    date,
+			},
+		)
+		if err != nil {
+			return models.PosterGameRes{}, err
+		}
+		posterGame = newPosterGame[len(newPosterGame)-iteration]
+
+	}
+
 	correct := false
 	if posterGame.MovieID == movie_id {
 		correct = true
@@ -85,22 +98,16 @@ func (s *posterGameService) generatePosterImages(movie_id int) ([]image.Image, e
 	// A ideia aqui é gerar 9 imagens, cada um com um retangulo novo revelado.
 	total_attempts := 9
 	blockSize := 15
-	rgba := image_manipualtor.ToRGBA(baseImg)
-	rects := image_manipualtor.GetAllRects(rgba)
+	rects := image_manipualtor.GetAllRects(baseImg)
+
 	/*suffle*/
 	for i := range rects {
 		j := rand.Intn(i + 1)
 		rects[i], rects[j] = rects[j], rects[i]
 	}
-	for i := 1; i <= total_attempts-1; i++ {
-		image_manipualtor.PixelateNRegions(rgba, rects[:i], blockSize)
-		outFile, _ := os.Create(fmt.Sprintf("output_%d.jpg", i))
-		defer outFile.Close()
-		jpeg.Encode(outFile, rgba, &jpeg.Options{Quality: 90})
-	}
-	fmt.Println("Rectangles order:", rects)
 	for i := 1; i <= total_attempts; i++ {
-		imgs = append(imgs, image_manipualtor.PixelateNRegions(baseImg, rects[:i], blockSize))
+		copy := image_manipualtor.ToRGBA(baseImg) // cópia da imagem original
+		imgs = append(imgs, image_manipualtor.PixelateNRegions(copy, rects[:i], blockSize))
 	}
 
 	return imgs, nil
@@ -112,7 +119,10 @@ func (s *posterGameService) saveGeneratedImages(movie_id int, date string) ([]st
 		return nil, err
 	}
 	iteration := len(imgs)
-	// abre conexão com imagekit
+	if iteration == 0 {
+		return nil, fmt.Errorf("no images generated")
+	}
+	// // abre conexão com imagekit
 	key := config.LoadConfig().ImageKitKey
 	client := imagekit.NewClient(
 		option.WithPrivateKey(key),
@@ -120,6 +130,7 @@ func (s *posterGameService) saveGeneratedImages(movie_id int, date string) ([]st
 	var buf bytes.Buffer
 	// Save the generated images
 	for _, img := range imgs {
+
 		err := jpeg.Encode(&buf, img, nil)
 		if err != nil {
 			log.Fatal(err)
@@ -134,20 +145,21 @@ func (s *posterGameService) saveGeneratedImages(movie_id int, date string) ([]st
 			log.Fatalf("Erro ao fazer upload do arquivo: %v", err)
 		}
 		results = append(results, response.URL)
-		iteration--
 		buf.Reset()
+
+		iteration--
 
 	}
 	return results, nil
 }
 
-/* nunca se cria sómente um posterGame,  cria um para cada iteração*/
-func (s *posterGameService) createPosterGame(posterGame models.PosterGame) ([]int, error) {
+/* nunca se cria somente um posterGame,  cria um para cada imagem borrada (iteração)*/
+func (s *posterGameService) createPosterGame(posterGame models.PosterGameCreate) ([]models.PosterGame, error) {
 	imageURLs, err := s.saveGeneratedImages(posterGame.MovieID, posterGame.Date)
 	if err != nil {
 		return nil, err
 	}
-	var ids []int
+	var res []models.PosterGame
 	i := len(imageURLs)
 	for _, url := range imageURLs {
 		id, err := s.repo.CreatePosterGame(models.PosterGame{
@@ -160,10 +172,18 @@ func (s *posterGameService) createPosterGame(posterGame models.PosterGame) ([]in
 		if err != nil {
 			return nil, err
 		}
-		ids = append(ids, id)
+		res = append(res, models.PosterGame{
+			ID:        id,
+			MovieID:   posterGame.MovieID,
+			Name:      posterGame.Name,
+			Date:      posterGame.Date,
+			ImageURL:  url,
+			Iteration: i,
+		})
+
 		i--
 	}
-	return ids, nil
+	return res, nil
 }
 
 func (s *posterGameService) GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error) {

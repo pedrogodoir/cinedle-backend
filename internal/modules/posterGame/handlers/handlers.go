@@ -24,7 +24,6 @@ func (h *PosterGameHandler) ValidateGuess(c *gin.Context) {
 	defaultDate := c.DefaultQuery("date", time.Now().Format("2006-01-02"))
 	date := c.DefaultQuery("date", defaultDate)
 	iteration := c.DefaultQuery("iteration", "1")
-
 	id, err := strconv.Atoi(movieID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
@@ -38,7 +37,7 @@ func (h *PosterGameHandler) ValidateGuess(c *gin.Context) {
 
 	res, err := h.service.ValidateGuess(id, date, iter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Not implemented"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"res": res})
