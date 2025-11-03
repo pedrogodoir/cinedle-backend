@@ -16,6 +16,7 @@ type Config struct {
 	DBName      string
 	DBHost      string
 	DBPort      string
+	ImageKitKey string
 }
 
 var (
@@ -39,6 +40,7 @@ func LoadConfig() *Config {
 			DBName:      os.Getenv("DB_NAME"),
 			DBHost:      os.Getenv("DB_HOST"),
 			DBPort:      os.Getenv("DB_PORT"),
+			ImageKitKey: os.Getenv("IMAGEKIT_PRIVATE_KEY"),
 		}
 	})
 
