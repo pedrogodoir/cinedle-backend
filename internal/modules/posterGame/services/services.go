@@ -45,24 +45,45 @@ func (s *posterGameService) UpdatePosterGame(posterGame models.PosterGame) error
 	return s.repo.UpdatePosterGame(posterGame)
 }
 
+func (s *posterGameService) DrawMovie(date string) int {
+	movie_service := movies_service.NewMoviesService()
+
+	fmt.Println("Sorteando filme para poster game do dia em:", date)
+
+	// Buscar apenas IDs de filmes que ainda não estão na classic_games
+	availableIDs, err := movie_service.GetAvailablePosterMovieIDs()
+	if err != nil {
+		fmt.Println("Erro ao buscar filmes disponíveis:", err)
+		return -1
+	}
+	if len(availableIDs) == 0 {
+		fmt.Println("Nenhum filme disponível para sortear")
+		return -1
+	}
+
+	// Sortear um ID entre os disponíveis
+	randomID := availableIDs[rand.Intn(len(availableIDs))]
+
+	fmt.Println("Filme sorteado:", randomID)
+
+	// 4. Registrar como Poster Game create
+	s.createPosterGame(
+		models.PosterGameCreate{
+			MovieID: randomID,
+			Date:    date,
+		},
+	)
+	if err != nil {
+		fmt.Println("Erro ao criar jogo clássico:", err)
+		return -1
+	}
+	return randomID
+}
+
 func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error) {
-	posterGame, err := s.repo.GetPosterGameByDateAndIteration(date, iteration)
+	posterGame, err := s.GetPosterGameByDateAndIteration(date, iteration)
 	if err != nil {
 		return models.PosterGameRes{}, err
-	}
-	/*não tem no bd, cria*/
-	if posterGame.ID == 0 {
-		newPosterGame, err := s.createPosterGame(
-			models.PosterGameCreate{
-				MovieID: movie_id,
-				Date:    date,
-			},
-		)
-		if err != nil {
-			return models.PosterGameRes{}, err
-		}
-		posterGame = newPosterGame[len(newPosterGame)-iteration]
-
 	}
 
 	correct := false
@@ -187,5 +208,16 @@ func (s *posterGameService) createPosterGame(posterGame models.PosterGameCreate)
 }
 
 func (s *posterGameService) GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error) {
+
+	game, err := s.repo.GetPosterGameByDateAndIteration(date, iteration)
+
+	// Filme não encontrado para o dia. Sortear.
+	if game.ID == 0 {
+		draw_id := s.DrawMovie(date)
+		return s.repo.GetPosterGameById(draw_id)
+	}
+	if err != nil {
+		fmt.Println("Erro ao buscar classic game")
+	}
 	return s.repo.GetPosterGameByDateAndIteration(date, iteration)
 }
