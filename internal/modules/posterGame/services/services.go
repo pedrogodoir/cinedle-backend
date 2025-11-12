@@ -66,7 +66,7 @@ func (s *posterGameService) DrawMovie(date string) int {
 
 	fmt.Println("Filme sorteado:", randomID)
 
-	// 4. Registrar como Poster Game create
+	// Registrar como Poster Game create
 	s.createPosterGame(
 		models.PosterGameCreate{
 			MovieID: randomID,
@@ -217,7 +217,7 @@ func (s *posterGameService) GetPosterGameByDateAndIteration(date string, iterati
 		return s.repo.GetPosterGameById(draw_id)
 	}
 	if err != nil {
-		fmt.Println("Erro ao buscar classic game")
+		fmt.Println("Erro ao buscar poster game")
 	}
 	return s.repo.GetPosterGameByDateAndIteration(date, iteration)
 }
