@@ -80,7 +80,7 @@ func (s *posterGameService) DrawMovie(date string) int {
 func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameGuessRes, error) {
 
 	if iteration < 1 || iteration > 9 {
-		iteration = 1
+		return models.PosterGameGuessRes{}, fmt.Errorf("iteration %d fora do intervalo válido (1–9)", iteration)
 	}
 	posterGame, err := s.repo.GetPosterGameByDateAndIteration(date, iteration)
 	if err != nil {
