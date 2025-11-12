@@ -15,6 +15,7 @@ type MoviesRepository interface {
 	GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error)
 	GetMovieCount() (int, error)
 	GetAvailableClassicMovieIDs() ([]int, error)
+	GetAvailablePosterMovieIDs() ([]int, error)
 }
 
 // moviesRepo é a implementação concreta do repositório
@@ -56,6 +57,32 @@ func (r *moviesRepo) GetAvailableClassicMovieIDs() ([]int, error) {
 	return ids, nil
 }
 
+func (r *moviesRepo) GetAvailablePosterMovieIDs() ([]int, error) {
+	query := `
+		SELECT id FROM movies m
+		WHERE NOT EXISTS (
+			SELECT 1
+			FROM poster_games pg
+			WHERE pg.movie_id = m.id
+		);
+	`
+	rows, err := r.db.Query(database.GetCtx(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
 func (r *moviesRepo) GetMovieById(id int) (models.MovieRes, error) {
 	var query string = `SELECT 
     m.id, m.title, m.poster, m.release_date, m.budget, m.ticket_office, m.vote_average,

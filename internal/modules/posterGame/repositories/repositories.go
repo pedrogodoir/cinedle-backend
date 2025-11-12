@@ -10,7 +10,6 @@ import (
 type PosterGameRepository interface {
 	GetPosterGameById(id int) (models.PosterGame, error)
 	CreatePosterGame(posterGame models.PosterGame) (int, error)
-	//feio, eu sei
 	GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error)
 	UpdatePosterGame(posterGame models.PosterGame) error
 }

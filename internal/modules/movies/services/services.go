@@ -15,6 +15,7 @@ type MoviesService interface {
 	GetMovieSummaryByTitle(title string) ([]models.MovieSummary, error)
 	GetMovieCount() (int, error)
 	GetAvailableClassicMovieIDs() ([]int, error)
+	GetAvailablePosterMovieIDs() ([]int, error)
 }
 
 // moviesService é a implementação concreta
@@ -35,6 +36,10 @@ func (s *moviesService) GetMovieById(id int) (models.MovieRes, error) {
 
 func (s *moviesService) GetAvailableClassicMovieIDs() ([]int, error) {
 	return s.repo.GetAvailableClassicMovieIDs()
+}
+
+func (s *moviesService) GetAvailablePosterMovieIDs() ([]int, error) {
+	return s.repo.GetAvailablePosterMovieIDs()
 }
 
 func (s *moviesService) GetMovieByTitle(title string) (models.MovieRes, error) {
