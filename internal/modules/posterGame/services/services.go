@@ -24,7 +24,7 @@ type PosterGameService interface {
 	GetPosterGameByDateAndIteration(date string, iteration int) (models.PosterGame, error)
 	createPosterGame(posterGame models.PosterGameCreate) ([]models.PosterGame, error)
 	UpdatePosterGame(posterGame models.PosterGame) error
-	ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error)
+	ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameGuessRes, error)
 	generatePosterImages(movie_id int) ([]image.Image, error)
 	saveGeneratedImages(movie_id int, date string) ([]string, error)
 }
@@ -73,17 +73,14 @@ func (s *posterGameService) DrawMovie(date string) int {
 			Date:    date,
 		},
 	)
-	if err != nil {
-		fmt.Println("Erro ao criar jogo clássico:", err)
-		return -1
-	}
+
 	return randomID
 }
 
-func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameRes, error) {
+func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameGuessRes, error) {
 	posterGame, err := s.GetPosterGameByDateAndIteration(date, iteration)
 	if err != nil {
-		return models.PosterGameRes{}, err
+		return models.PosterGameGuessRes{}, err
 	}
 
 	correct := false
@@ -92,13 +89,13 @@ func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration i
 	}
 	next, err := s.repo.GetPosterGameByDateAndIteration(date, iteration+1)
 	if err != nil {
-		return models.PosterGameRes{}, err
+		return models.PosterGameGuessRes{}, err
 	}
 
-	return models.PosterGameRes{
-		PosterGame: posterGame,
-		Correct:    correct,
-		NextImage:  next.ImageURL,
+	return models.PosterGameGuessRes{
+		CurrentImage: posterGame.ImageURL,
+		Correct:      correct,
+		NextImage:    next.ImageURL,
 	}, nil
 }
 
@@ -213,11 +210,12 @@ func (s *posterGameService) GetPosterGameByDateAndIteration(date string, iterati
 
 	// Filme não encontrado para o dia. Sortear.
 	if game.ID == 0 {
-		draw_id := s.DrawMovie(date)
-		return s.repo.GetPosterGameById(draw_id)
+		fmt.Println("Nenhum poster game encontrado para a data e iteração. Sorteando novo filme.")
+		s.DrawMovie(date)
+		return s.repo.GetPosterGameByDateAndIteration(date, iteration)
 	}
 	if err != nil {
-		fmt.Println("Erro ao buscar poster game")
+		fmt.Println("Erro ao buscar poster game: ", err)
 	}
 	return s.repo.GetPosterGameByDateAndIteration(date, iteration)
 }
