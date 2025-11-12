@@ -78,23 +78,39 @@ func (s *posterGameService) DrawMovie(date string) int {
 }
 
 func (s *posterGameService) ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameGuessRes, error) {
-	posterGame, err := s.GetPosterGameByDateAndIteration(date, iteration)
+
+	if iteration < 1 || iteration > 9 {
+		return models.PosterGameGuessRes{}, fmt.Errorf("iteration %d fora do intervalo válido (1–9)", iteration)
+	}
+	posterGame, err := s.repo.GetPosterGameByDateAndIteration(date, iteration)
 	if err != nil {
 		return models.PosterGameGuessRes{}, err
 	}
 
-	correct := false
-	if posterGame.MovieID == movie_id {
-		correct = true
+	var next models.PosterGame
+
+	if posterGame.MovieID == movie_id { // ACERTOU O FILME
+
+		posterFinal, err := s.repo.GetPosterGameByDateAndIteration(date, 9)
+		if err != nil {
+			return models.PosterGameGuessRes{}, err
+		}
+		return models.PosterGameGuessRes{
+			CurrentImage: posterFinal.ImageURL,
+			Correct:      true,
+			NextImage:    "",
+		}, nil
+
 	}
-	next, err := s.repo.GetPosterGameByDateAndIteration(date, iteration+1)
+	// ERROU O FILME
+	next, err = s.repo.GetPosterGameByDateAndIteration(date, iteration+1)
 	if err != nil {
 		return models.PosterGameGuessRes{}, err
 	}
 
 	return models.PosterGameGuessRes{
 		CurrentImage: posterGame.ImageURL,
-		Correct:      correct,
+		Correct:      false,
 		NextImage:    next.ImageURL,
 	}, nil
 }
