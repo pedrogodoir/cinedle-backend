@@ -27,7 +27,7 @@ type PosterGameService interface {
 	ValidateGuess(movie_id int, date string, iteration int) (models.PosterGameGuessRes, error)
 	generatePosterImages(movie_id int) ([]image.Image, error)
 	saveGeneratedImages(movie_id int, date string) ([]string, error)
-	GetPosterImageByDateAndIteration(date string, iteration int) (string, error)
+	GetPosterImageByDateAndIteration(date string, iteration int) (models.PosterImageImage, error)
 }
 type posterGameService struct {
 	repo repository.PosterGameRepository
@@ -237,11 +237,11 @@ func (s *posterGameService) GetPosterGameByDateAndIteration(date string, iterati
 	return s.repo.GetPosterGameByDateAndIteration(date, iteration)
 }
 
-func (s *posterGameService) GetPosterImageByDateAndIteration(date string, iteration int) (string, error) {
+func (s *posterGameService) GetPosterImageByDateAndIteration(date string, iteration int) (models.PosterImageImage, error) {
 	if iteration < 1 || iteration > 9 {
 		iteration = 1
 	}
 	game, err := s.GetPosterGameByDateAndIteration(date, iteration)
 	fmt.Println("GAME: ", game)
-	return game.ImageURL, err
+	return models.PosterImageImage{ImageURL: game.ImageURL}, err
 }

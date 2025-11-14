@@ -23,3 +23,7 @@ type PosterGameCreate struct {
 	Date    string `json:"date"`
 	Name    string `json:"name"`
 }
+
+type PosterImageImage struct {
+	ImageURL string `json:"image_url"`
+}
