@@ -10,5 +10,6 @@ func Routes(route *gin.Engine, h *handlers.PosterGameHandler) {
 	posterGames := route.Group("/poster-games")
 	{
 		posterGames.GET("/guess", h.ValidateGuess)
+		posterGames.GET("/image", h.GetPosterImageByDateAndIteration)
 	}
 }
