@@ -11,7 +11,7 @@ func Routes(route *gin.Engine, h *handlers.PosterGameHandler) {
 	{
 		posterGames.GET("/guess", h.ValidateGuess)
 		posterGames.GET("/image", h.GetPosterImageByDateAndIteration)
-		posterGames.GET("/", h.GetPosterGameByDateAndIteration)
+		posterGames.GET("", h.GetPosterGameByDateAndIteration)
 
 	}
 }
