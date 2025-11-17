@@ -59,5 +59,23 @@ func (h *PosterGameHandler) GetPosterImageByDateAndIteration(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"res": res})
+}
 
+func (h *PosterGameHandler) GetPosterGameByDateAndIteration(c *gin.Context) {
+	defaultDate := c.DefaultQuery("date", time.Now().Format("2006-01-02"))
+	date := c.DefaultQuery("date", defaultDate)
+
+	iteration := c.DefaultQuery("iteration", "9")
+	iter, err := strconv.Atoi(iteration)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Iteração inválida"})
+		return
+	}
+
+	res, err := h.service.GetPosterGameByDateAndIteration(date, iter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"res": res})
 }
