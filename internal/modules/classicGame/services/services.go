@@ -105,36 +105,31 @@ func (s *classicGameService) DrawMovie(date time.Time) int {
 
 	fmt.Println("Sorteando filme do dia em:", date)
 
-	movie_count, err := movie_service.GetMovieCount()
-
+	// Buscar apenas IDs de filmes que ainda não estão na classic_games
+	availableIDs, err := movie_service.GetAvailableClassicMovieIDs()
 	if err != nil {
-		fmt.Println("Erro ao buscar quantidade de filmes")
+		fmt.Println("Erro ao buscar filmes disponíveis:", err)
+		return -1
+	}
+	if len(availableIDs) == 0 {
+		fmt.Println("Nenhum filme disponível para sortear")
 		return -1
 	}
 
-	var randomId int
-	for {
-		randomId = rand.Intn(movie_count-1) + 1 // sorteia entre 1 e movie_count
-		searchedGame, err := s.GetClassicGameById(randomId)
-		if searchedGame.ID == 0 {
-			fmt.Println("ID vago:", randomId)
-			break
-		}
+	// Sortear um ID entre os disponíveis
+	randomID := availableIDs[rand.Intn(len(availableIDs))]
 
-		if err != nil {
-			fmt.Println("Erro ao buscar classicGame:")
-			break
-		}
-		fmt.Println("ID já existe, sorteando outro:", randomId)
-	}
+	fmt.Println("Filme sorteado:", randomID)
 
-	searchedMovie, err := movie_service.GetMovieById(randomId)
+	// Buscar informações completas do filme
+	searchedMovie, err := movie_service.GetMovieById(randomID)
 	if err != nil {
 		return -1
 	}
 
+	// 4. Registrar como ClassicGame
 	game := models.ClassicGame{
-		ID:           randomId,
+		ID:           randomID,
 		Title:        searchedMovie.Title,
 		Date:         date,
 		TotalGuesses: 0,
@@ -142,12 +137,13 @@ func (s *classicGameService) DrawMovie(date time.Time) int {
 
 	created, err := s.CreateClassicGame(game)
 	if err != nil {
-		fmt.Println("Erro ao criar filme: ", err)
+		fmt.Println("Erro ao criar jogo clássico:", err)
 		return -1
 	}
 
 	return created.ID
 }
+
 func (s *classicGameService) GetClassicGameByDate(date time.Time) (models.ClassicGame, error) {
 	game, err := s.repo.GetClassicGameByDate(date)
 
