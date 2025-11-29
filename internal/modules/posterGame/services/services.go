@@ -132,7 +132,7 @@ func (s *posterGameService) generatePosterImages(movie_id int) ([]image.Image, e
 	imgs := []image.Image{}
 	// A ideia aqui é gerar 9 imagens, cada um com um retangulo novo revelado.
 	total_attempts := 9
-	blockSize := 15
+	blockSize := 25
 	rects := image_manipualtor.GetAllRects(baseImg)
 
 	/*suffle*/
