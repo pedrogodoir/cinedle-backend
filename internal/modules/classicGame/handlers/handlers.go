@@ -7,6 +7,7 @@ import (
 
 	"cinedle-backend/internal/modules/classicGame/models"
 	services "cinedle-backend/internal/modules/classicGame/services"
+	"cinedle-backend/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -101,6 +102,13 @@ func (h *ClassicGameHandler) ValidateGuess(c *gin.Context) {
 	movieID := c.Query("movie_id")
 	defaultDate := c.DefaultQuery("date", time.Now().Format("2006-01-02"))
 	date := c.DefaultQuery("date", defaultDate)
+
+	_, err := utils.ValidateDate(date)
+	if err != nil {
+		// Retornamos o erro exato que a função auxiliar gerou
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	id, err := strconv.Atoi(movieID)
 	if err != nil {

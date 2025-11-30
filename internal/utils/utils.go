@@ -3,7 +3,9 @@ package utils
 import (
 	model_classic_game "cinedle-backend/internal/modules/classicGame/models"
 	model_movie "cinedle-backend/internal/modules/movies/models"
+	"errors"
 	"strings"
+	"time"
 )
 
 // capitalize the first letter of each word in a string
@@ -87,6 +89,35 @@ func CompareMovies(correct, guess model_movie.MovieRes) model_classic_game.Class
 		cg.Actors == "correct"
 
 	return cg
+}
+
+// Defina a data limite em uma constante para facilitar alterações futuras
+const MinGameDateStr = "2025-09-16"
+
+func ValidateDate(dateStr string) (time.Time, error) {
+
+	parsedDate, err := time.ParseInLocation("2006-01-02", dateStr, time.Local)
+	if err != nil {
+		return time.Time{}, errors.New("formato de data inválido. Use YYYY-MM-DD")
+	}
+
+	// Define o hoje (normalizado para meia-noite)
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+
+	// Validação Futuro
+	if parsedDate.After(today) {
+		return time.Time{}, errors.New("não é permitido solicitar datas futuras")
+	}
+
+	// Validação anterior (Data Limite)
+	minDate, _ := time.ParseInLocation("2006-01-02", MinGameDateStr, time.Local)
+
+	if parsedDate.Before(minDate) {
+		return time.Time{}, errors.New("não é permitido solicitar datas anteriores a " + MinGameDateStr)
+	}
+
+	return parsedDate, nil
 }
 
 func statusSliceByIDStrict(guessIDs, correctIDs []int) string {
