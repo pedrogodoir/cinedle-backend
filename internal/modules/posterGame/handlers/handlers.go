@@ -2,6 +2,7 @@ package handlers
 
 import (
 	services "cinedle-backend/internal/modules/posterGame/services"
+	"cinedle-backend/internal/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,6 +36,13 @@ func (h *PosterGameHandler) ValidateGuess(c *gin.Context) {
 		return
 	}
 
+	_, err = utils.ValidateDate(date)
+	if err != nil {
+		// Retornamos o erro exato que a função auxiliar gerou
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	res, err := h.service.ValidateGuess(id, date, iter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -47,9 +55,17 @@ func (h *PosterGameHandler) GetPosterImageByDateAndIteration(c *gin.Context) {
 	date := c.DefaultQuery("date", time.Now().Format("2006-01-02"))
 	iteration := c.DefaultQuery("iteration", "1")
 
+	// Validação da Iteração
 	iter, err := strconv.Atoi(iteration)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Iteração inválida"})
+		return
+	}
+
+	_, err = utils.ValidateDate(date)
+	if err != nil {
+		// Retornamos o erro exato que a função auxiliar gerou
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -69,6 +85,13 @@ func (h *PosterGameHandler) GetPosterGameByDateAndIteration(c *gin.Context) {
 	iter, err := strconv.Atoi(iteration)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Iteração inválida"})
+		return
+	}
+
+	_, err = utils.ValidateDate(date)
+	if err != nil {
+		// Retornamos o erro exato que a função auxiliar gerou
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
