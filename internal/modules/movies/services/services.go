@@ -5,6 +5,7 @@ import (
 	"cinedle-backend/internal/modules/movies/models"
 	repository "cinedle-backend/internal/modules/movies/repositories"
 	"cinedle-backend/internal/utils"
+	cache_movie "cinedle-backend/internal/utils/cache/cacheMovie"
 	"strings"
 )
 
@@ -30,8 +31,22 @@ func NewMoviesService() MoviesService {
 	}
 }
 
+// package-level cache instance so we don't recreate it on every request
+var movieCache = cache_movie.NewCacheMovie()
+
 func (s *moviesService) GetMovieById(id int) (models.MovieRes, error) {
-	return s.repo.GetMovieById(id)
+	// primeiro usa a cache (instância única em nível de pacote)
+	movie, hit := movieCache.GetMovieCache(id)
+	if !hit {
+
+		var err error
+		movie, err = s.repo.GetMovieById(id)
+		if err != nil {
+			return models.MovieRes{}, err
+		}
+		movieCache.SetMovieCache(id, movie)
+	}
+	return movie, nil
 }
 
 func (s *moviesService) GetAvailableClassicMovieIDs() ([]int, error) {

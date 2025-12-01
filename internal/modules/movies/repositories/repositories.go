@@ -182,7 +182,7 @@ func (r *moviesRepo) GetMovieSummaryByTitle(title string) ([]models.MovieSummary
 	var movieRes []models.MovieSummary
 
 	rows, err := r.db.Query(database.GetCtx(),
-		`SELECT * from search_movie where title LIKE '%' || $1 || '%'`,
+		`SELECT * from search_movie where lower(title) LIKE '%' || $1 || '%'`,
 		title,
 	)
 	if err != nil {
